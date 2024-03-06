@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        /* Styles for the chatbot container */
+        #chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Styles for chat messages */
+        .chat-message {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
+        }
+
+        /* Styles for user input */
+        #user-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        /* Style for send button */
+        #send-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Chatbot container -->
+    <div id="chat-container">
+        <div id="chat-messages">
+            <!-- Chat messages will appear here -->
+        </div>
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    <!-- JavaScript for handling chat interactions -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var chatMessages = document.getElementById("chat-messages");
+            var userInput = document.getElementById("user-input");
+            var sendButton = document.getElementById("send-button");
+
+            // Function to display a message in the chat
+            function displayMessage(message, sender) {
+                var messageElement = document.createElement("div");
+                messageElement.classList.add("chat-message");
+                messageElement.innerText = (sender ? "You: " : "Bot: ") + message;
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Function to send user input to the server and get the response
+            function sendMessage() {
+                var userMessage = userInput.value.trim();
+                if (userMessage === "") return;
+
+                displayMessage(userMessage, true);
+                userInput.value = "";
+
+                // Send user input to the server
+                fetch("/chatbot", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        user_input: userMessage,
+                    }),
+                })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    displayMessage(data.response, false);
+                })
+                .catch(function (error) {
+                    console.error("Error sending message:", error);
+                });
+            }
+
+            // Event listener for the send button
+            sendButton.addEventListener("click", function () {
+                sendMessage();
+            });
+
+            // Event listener for pressing Enter key
+            userInput.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            });
+
+            // Display a welcome message when the page loads
+            displayMessage("Welcome to the Chatbot!", false);
+        });
+    </script>
+</body>
+</html>
